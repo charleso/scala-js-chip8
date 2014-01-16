@@ -1,28 +1,22 @@
 package chip8
 
-//TODO do we need a register class
-case class Register(value: Int) {
-  def ==(i: Register) = value == i.value
-  def +(i: Register) = new Register(value + i.value)
-  def *(i: Register) = new Register(value * i.value)
-  def -(i: Register) = new Register(value - i.value)
-  def <<(i: Register) = new Register(value << i.value)
-  def >>(i: Register) = new Register(value >> i.value)
-  def &(i: Register) = new Register(value & i.value)
-  def |(i: Register) = new Register(value | i.value)
-  def ^(i: Register) = new Register(value ^ i.value)
-}
-
 case class Registers(val registers: List[Register]) {
-  def X(implicit address: Int) = registers((address & 0x0F00) >> 8)
-  def Y(implicit address: Int) = registers((address & 0x00F0) >> 4)
+
+  type AddressR[T] = Address => T
+
+  def X2: AddressR[Register] = address => X(address)
+
+  def X(implicit address: Address) = registers((address & 0x0F00) >> 8)
+  def Y(implicit address: Address) = registers((address & 0x00F0) >> 4)
   def CARRY = registers(0xF)
 
-  def X_(value: Register)(implicit address: Int): Registers = {
+  def X2_(value: Register): AddressR[Registers] = a => X_(value)(a)
+
+  def X_(value: Register)(implicit address: Address): Registers = {
     Registers(registers.updated((address & 0x0F00) >> 8, value))
   }
 
-  def Y_(value: Register)(implicit address: Int): Registers = {
+  def Y_(value: Register)(implicit address: Address): Registers = {
     Registers(registers.updated((address & 0x0F00) >> 8, value))
   }
 

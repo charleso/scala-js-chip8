@@ -8,22 +8,23 @@ case class Cpu(
   val delayTimer: Int = 0,
   val soundTimer: Int = 0,
   val screen: Screen = Screen(65, 33),
-  val registers: Registers = Registers(List.fill[Register](16)(new Register(0))),
-  val registerI: Register = Register(0)) {
+  val registers: Registers = Registers(List.fill[Register](16)(0)),
+  val registerI: Register = 0) {
 
   def handleOpcode(beforeExecution: Cpu): Cpu = {
     val opcodeFunction = Opcodes.fetch(beforeExecution.nextOpcode)
     opcodeFunction(beforeExecution.copy(beforeExecution.pc + 2))
   }
 
-  def handleTimers(cpu: Cpu) = cpu.copy(
+  def handleTimers: CpuReader = cpu => cpu.copy(
     delayTimer = if (cpu.delayTimer > 0) cpu.delayTimer - 1 else cpu.delayTimer,
     soundTimer = if (cpu.soundTimer > 0) cpu.soundTimer - 1 else cpu.soundTimer
   )
 
   // TODO
-  def handleInput(cpu: Cpu) = cpu
+  def handleInput: CpuReader = identity
 
+  // TODO Should this really be val? Seems like something you want to calculate on the fly?
   val nextOpcode = memory.data(pc) << 8 | memory.data(pc + 1)
 
   def debug(cpu: Cpu) = {
@@ -32,8 +33,17 @@ case class Cpu(
       " instruction before = " + (cpu.nextOpcode & 0xF000).toHexString)
   }
 
-  def emulate(drawScreen: Cpu => Cpu) = {
+  def emulate(drawScreen: CpuReader) = {
     handleOpcode _ andThen handleTimers andThen handleInput andThen drawScreen
+  }
+
+  def update(pc: Int = pc, stack: Stack[Int] = stack) = {
+    // Fast version, one version
+    // Could also return an ADT that is then interpreted
+//    this.pc = pc
+//    this.stack = stack
+//    this
+    copy(pc = pc, stack = stack)
   }
 }
 
