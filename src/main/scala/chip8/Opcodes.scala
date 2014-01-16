@@ -6,16 +6,16 @@ import scala.NotImplementedError
 object Opcodes {
 
   // Technically this is ReaderT[State, Cpu, OpCode], or something like that
-  type CpuOp = (Cpu, Opcode) => Cpu
+  type CpuOp = Opcode => Cpu => Cpu
 
-  def fetch(opcode: Opcode): CpuReader = cpu => (opcode & 0xF000 match {
+  def fetch(opcode: Opcode): CpuReader = (opcode & 0xF000 match {
     case 0x0000 => opcode & 0xF match {
       case 0x0000 => clearScreen
       case 0x000E => op00EE
     }
     case 0x1000 => op1NNN
     case 0x2000 => op2NNN
-  })(cpu, opcode)
+  })(opcode)
 
 //
 //  def fetch: CpuState = opcode & 0xF000 match {
@@ -75,39 +75,27 @@ object Opcodes {
   def op00EE: CpuState = _ =>
     State.modify(cpu => cpu.copy(pc = cpu.stack.head, stack = cpu.stack.pop))
 
-  // Using ADT, hmm this seemed better in my head
-
-  def op1NNN = update {
-    (cpu, opcode) => Pc(opcode & 0x0FFF)
-  }
-
-  trait CpuUpdate {
-    def ++(update: CpuUpdate) = Multi(List(this, update))
-  }
-  case class Pc(value: Int) extends CpuUpdate
-  case class Multi(values: List[CpuUpdate]) extends CpuUpdate
-  case class Stack2(value: Stack[Int]) extends CpuUpdate
-
   */
 
-  val clearScreen: CpuOp = (cpu, _) => cpu
+  val clearScreen: CpuOp = _ => identity
 
   val op00EE: CpuOp = {
-    (cpu, _) => cpu.update(pc = cpu.stack.head, stack = cpu.stack.pop)
+    _ => cpu => cpu.update(pc = cpu.stack.head, stack = cpu.stack.pop)
   }
 
   val op1NNN: CpuOp = {
-    (cpu, opcode) => cpu.update(pc = opcode & 0x0FFF)
+    opcode => _.update(pc = opcode & 0x0FFF)
   }
 
   val op2NNN: CpuOp = {
-    (cpu, opcode) => cpu.update(stack = cpu.stack.push(cpu.pc), pc = opcode & 0x0FFF)
+    opcode => cpu => cpu.update(stack = cpu.stack.push(cpu.pc), pc = opcode & 0x0FFF)
   }
 
   val op3XNN: CpuOp = {
-    (cpu, opcode) => cpu.update(pc =
+    opcode => cpu => Cpu.pc(
+      // Sucks having to pass in opcode here
       if (cpu.registers.X2(opcode) == (opcode & 0x00FF)) cpu.pc + 2
-      else cpu.pc)
+      else cpu.pc)(cpu)
   }
 
   /*

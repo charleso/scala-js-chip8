@@ -47,6 +47,13 @@ case class Cpu(
   }
 }
 
+object Cpu {
+
+  def pc(value: Int): CpuReader = cpu => {
+    cpu.copy(pc = value)
+  }
+}
+
 case class Screen(x: Int, y: Int) {
   val s = Array.ofDim[Int](x, y)
 

@@ -12,7 +12,7 @@ class OpcodesTest extends FunSpec {
   )
 
   describe("00EE") {
-    val cpuAfter = Opcodes.op00EE(cpu, 0x00EE)
+    val cpuAfter = Opcodes.op00EE(0x00EE)(cpu)
 
     it("should push program counter onto stack") {
       assert(cpuAfter.pc === cpu.stack.head)
@@ -24,7 +24,7 @@ class OpcodesTest extends FunSpec {
   }
 
   describe("1NNN") {
-    val cpuAfter = Opcodes.op1NNN(cpu, 0x1100)
+    val cpuAfter = Opcodes.op1NNN(0x1100)(cpu)
 
     it("should push program counter onto stack") {
       assert(cpuAfter.pc === 0x100)
@@ -32,7 +32,7 @@ class OpcodesTest extends FunSpec {
   }
 
   describe("2NNN") {
-    val cpuAfter = Opcodes.op2NNN(cpu, 0x2001)
+    val cpuAfter = Opcodes.op2NNN(0x2001)(cpu)
 
     it("should push program counter onto stack") {
       assert(cpuAfter.stack.head === cpu.pc)
@@ -40,14 +40,14 @@ class OpcodesTest extends FunSpec {
   }
 
   describe("3XNN") {
-    val cpuAfter = Opcodes.op3XNN(cpu, 0x3100)
+    val cpuAfter = Opcodes.op3XNN(0x3100)(cpu)
 
     it("should skip the next instruction if register at X is equal to NN") {
       assert(cpuAfter.pc === cpu.pc + 2)
     }
 
     it("should skip not skip the next instruction if register at X is not equal to NN") {
-      val cpuAfterWithoutSkipping = Opcodes.op3XNN(cpu, 0x3101)
+      val cpuAfterWithoutSkipping = Opcodes.op3XNN(0x3101)(cpu)
       assert(cpuAfterWithoutSkipping.pc === cpu.pc)
     }
   }
