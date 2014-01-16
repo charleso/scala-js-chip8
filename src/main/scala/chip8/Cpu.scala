@@ -49,6 +49,8 @@ case class Cpu(
 
 object Cpu {
 
+  def flatMap(f: Cpu => CpuReader): CpuReader = cpu => f(cpu)(cpu)
+
   def pc(value: Int): CpuReader = cpu => {
     cpu.copy(pc = value)
   }

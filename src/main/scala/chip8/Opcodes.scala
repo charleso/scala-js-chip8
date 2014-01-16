@@ -92,10 +92,10 @@ object Opcodes {
   }
 
   val op3XNN: CpuOp = {
-    opcode => cpu => Cpu.pc(
+    opcode => Cpu.flatMap(cpu => Cpu.pc(
       // Sucks having to pass in opcode here
       if (cpu.registers.X2(opcode) == (opcode & 0x00FF)) cpu.pc + 2
-      else cpu.pc)(cpu)
+      else cpu.pc))
   }
 
   /*
